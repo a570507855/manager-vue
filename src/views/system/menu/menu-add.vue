@@ -1,16 +1,13 @@
 <template>
   <div class="app-container" id="menu-add">
     <el-form :model="form" label-width="80px" ref="form">
-      <!-- <el-form-item label="活动名称">
-        <el-input v-model="form.id"></el-input>
-      </el-form-item>-->
+      <el-form-item label="菜单">
+        <el-input v-model="form.title"></el-input>
+      </el-form-item>
       <el-form-item label="路径">
         <el-input v-model="form.path"></el-input>
       </el-form-item>
-      <el-form-item label="菜单名">
-        <el-input v-model="form.title"></el-input>
-      </el-form-item>
-      <el-form-item label="菜单图标">
+      <el-form-item label="图标">
         <el-input v-model="form.icon"></el-input>
       </el-form-item>
       <el-form-item class="btn-center">

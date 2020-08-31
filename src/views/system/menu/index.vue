@@ -2,7 +2,13 @@
   <div class="app-container">
     <div v-show="!isEdit">
       <el-button @click="onAdd('add',0)" type="primary">添加主菜单</el-button>
-      <el-table :border="true" :data="async_routes" row-key="id" style="margin-right:30px;">
+      <el-table
+        :border="true"
+        :data="async_routes"
+        :row-class-name="tableRowClassName"
+        row-key="id"
+        style="margin-right:30px;"
+      >
         <el-table-column align="center" label="菜单" min-width="160" prop="meta.title"></el-table-column>
         <el-table-column align="center" label="路径" min-width="160" prop="path"></el-table-column>
         <el-table-column label="操作" prop="parent" width="260">
@@ -55,7 +61,6 @@ export default {
   },
   methods: {
     onAdd (type, param) {
-      console.log(param)
       this.isEdit = true;
       if (type === 'add') {
         this.parent = param;
@@ -89,9 +94,19 @@ export default {
     },
     back () {
       this.isEdit = false;
+    },
+    tableRowClassName ({ row, index }) {
+      if (row.path === '*') {
+        return 'el-table-row-hide';
+      }
     }
   },
   mounted () {
   }
 }
 </script>
+<style>
+.el-table-row-hide {
+  display: none;
+}
+</style>
