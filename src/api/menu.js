@@ -2,7 +2,6 @@ import request from '@/utils/request'
 import Layout from '@/layout'
 import store from '@/store'
 
-
 let group = {};
 
 function getGroup(routes) {
@@ -30,6 +29,25 @@ function sortGroup() {
     group[key].sort((a, b) => {
       return a.sort - b.sort;
     });
+    let len = group[key].length;
+    let last = key === '0' && len !== 1 ? (len - 1) : len;
+    for (let i = 0; i < last; ++i) {
+      if (last === 1) {
+        group[key][i].isFirst = true;
+        group[key][i].isLast = true;
+        return;
+      }
+      if (i === 0) {
+        group[key][i].isFirst = true;
+        group[key][i].isLast = false;
+      } else if (i === last - 1) {
+        group[key][i].isFirst = false;
+        group[key][i].isLast = true;
+      } else {
+        group[key][i].isFirst = false;
+        group[key][i].isLast = false;
+      }
+    };
   });
 };
 
@@ -52,7 +70,6 @@ export default {
         url: 'http://localhost:8888/menu/get',
         method: 'get',
       }).then(res => {
-
         getGroup(res.data);
         sortGroup();
         let menus = getMenusFromGroup();
@@ -63,8 +80,8 @@ export default {
           hidden: true
         });
         resolve(menus);
-      }, reject)
-    })
+      }, reject);
+    });
   },
   addOrSave(data) {
     return new Promise((resolve, reject) => {
@@ -121,8 +138,8 @@ export default {
           roles: ['admin']
         });
         resolve(res);
-      }, reject)
-    })
+      }, reject);
+    });
   },
   delete(data) {
     return new Promise((resolve, reject) => {
@@ -143,7 +160,32 @@ export default {
           roles: ['admin']
         });
         resolve(res);
-      }, reject)
-    })
+      }, reject);
+    });
+  },
+  swapMenu(row, type) {
+    let index = group[row.parent].findIndex(item => item.id === row.id);
+    let swapRow = type === 'up' ? group[row.parent][index - 1] : group[row.parent][index + 1];
+    return new Promise((resolve, reject) => {
+      request({
+        url: 'http://localhost:8888/menu/swap',
+        method: 'post',
+        data: {
+          id: row.id,
+          swapId: swapRow.id
+        }
+      }).then(res => {
+        let tempSort = group[row.parent][index].sort;
+        group[row.parent][index].sort = swapRow.sort;
+        swapRow.sort = tempSort;
+        sortGroup();
+        let asyncRoutes = getMenusFromGroup();
+        store.dispatch('permission/generateRoutes', {
+          routes: asyncRoutes,
+          roles: ['admin']
+        });
+        resolve(res);
+      }, reject);
+    });
   }
 };

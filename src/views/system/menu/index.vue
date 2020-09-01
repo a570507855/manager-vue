@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <div v-show="!isEdit">
-      <el-button @click="onAdd('add',0)" type="primary">添加主菜单</el-button>
+      <el-button @click="onAdd('add',0)" style="margin-bottom:10px;" type="primary">添加主菜单</el-button>
       <el-table
         :border="true"
         :data="async_routes"
@@ -11,10 +11,24 @@
       >
         <el-table-column align="center" label="菜单" min-width="160" prop="meta.title"></el-table-column>
         <el-table-column align="center" label="路径" min-width="160" prop="path"></el-table-column>
-        <el-table-column label="操作" prop="parent" width="260">
+        <el-table-column label="操作" prop="parent" width="280">
           <template slot-scope="scope">
-            <el-button @click="onAdd('edit',scope.row)" circle icon="el-icon-edit" type="primary"></el-button>
-            <el-button @click="onDelete(scope.row)" circle icon="el-icon-delete" type="danger"></el-button>
+            <el-button
+              @click="onAdd('edit',scope.row)"
+              circle
+              icon="el-icon-edit"
+              size="mini"
+              type="primary"
+            ></el-button>
+            <el-button
+              @click="onDelete(scope.row)"
+              circle
+              icon="el-icon-delete"
+              size="mini"
+              type="danger"
+            ></el-button>
+            <el-button @click="onUp(scope.row)" circle size="mini" v-if="!scope.row.isFirst">上</el-button>
+            <el-button @click="onDown(scope.row)" circle size="mini" v-if="!scope.row.isLast">下</el-button>
             <el-button
               @click="onAdd('add',scope.row.id)"
               size="mini"
@@ -57,7 +71,6 @@ export default {
     windowHeight () {
       return window.innerHeight - 100;
     }
-
   },
   methods: {
     onAdd (type, param) {
@@ -91,6 +104,12 @@ export default {
           return console.log(err);
         }
       });
+    },
+    onUp (row) {
+      menu.swapMenu(row, 'up');
+    },
+    onDown (row) {
+      menu.swapMenu(row, 'down');
     },
     back () {
       this.isEdit = false;
