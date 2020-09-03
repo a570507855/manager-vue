@@ -7,45 +7,50 @@ import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
 import {
   getToken
-} from '@/utils/auth' // get token from cookie
+} from '@/sessionStorage/token'
+
 import getPageTitle from '@/utils/get-page-title'
+import menu from '@/api/menu'
+
 NProgress.configure({
   showSpinner: false
-}) // NProgress Configuration
+})
 
-const whiteList = ['/login'] // no redirect whitelist
+const whiteList = ['/login']
 
 router.beforeEach(async (to, from, next) => {
 
-  // start progress bar
   NProgress.start()
 
-  // set page title
   document.title = getPageTitle(to.meta.title)
 
-  // determine whether the user has logged in
-  const hasToken = getToken()
+  const hasToken = getToken();
+
   if (hasToken) {
+    if (!store.getters.permission_routes.length) {
+      menu.getMenuTree().then(res => {
+        store.dispatch('permission/generateRoutes', {
+          routes: res,
+          roles: ['admin']
+        });
+        router.addRoutes(res);
+      });
+    }
     if (to.path === '/login') {
-      console.log("登录")
-      // if is logged in, redirect to the home page
       next({
         path: '/'
       })
       NProgress.done()
     } else {
-      const hasGetUserInfo = store.getters.name
+      const hasGetUserInfo = '游戏人生'
       if (hasGetUserInfo) {
         next()
       } else {
         try {
-          // get user info
-          await store.dispatch('user/getInfo')
 
           next()
         } catch (error) {
-          // remove token and go to login page to re-login
-          await store.dispatch('user/resetToken')
+
           Message.error(error || 'Has Error')
           next(`/login?redirect=${to.path}`)
           NProgress.done()
@@ -60,7 +65,7 @@ router.beforeEach(async (to, from, next) => {
       next()
     } else {
       // other pages that do not have permission to access are redirected to the login page.
-      next(`/login?redirect=${to.path}`)
+      next(`/login?redirect=/home`)
       NProgress.done()
     }
   }

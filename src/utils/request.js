@@ -6,7 +6,7 @@ import {
 import store from '@/store'
 import {
   getToken
-} from '@/utils/auth'
+} from '@/sessionStorage/token'
 import querystring from 'querystring'
 
 const ajax = axios.create({
@@ -22,8 +22,8 @@ ajax.interceptors.request.use(
       //将post中的数据转化格式，避免客户端再发送一次options请求
       config.data = querystring.stringify(config.data);
     }
-    if (store.getters.token) {
-      config.headers['X-Token'] = getToken()
+    if (getToken()) {
+      config.headers['Authorization'] = getToken();
     }
     return config
   },

@@ -9,21 +9,21 @@
       ref="loginForm"
     >
       <div class="title-container">
-        <h3 class="title">Login Form</h3>
+        <h3 class="title">登录</h3>
       </div>
 
-      <el-form-item prop="username">
+      <el-form-item prop="account">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
         <el-input
           auto-complete="on"
-          name="username"
-          placeholder="Username"
-          ref="username"
+          name="account"
+          placeholder="账号"
+          ref="account"
           tabindex="1"
           type="text"
-          v-model="loginForm.username"
+          v-model="loginForm.account"
         />
       </el-form-item>
 
@@ -37,7 +37,7 @@
           @keyup.enter.native="handleLogin"
           auto-complete="on"
           name="password"
-          placeholder="Password"
+          placeholder="密码"
           ref="password"
           tabindex="2"
           v-model="loginForm.password"
@@ -52,12 +52,7 @@
         @click.native.prevent="handleLogin"
         style="width:100%;margin-bottom:30px;"
         type="primary"
-      >Login</el-button>
-
-      <div class="tips">
-        <span style="margin-right:20px;">username: admin</span>
-        <span>password: any</span>
-      </div>
+      >登录</el-button>
     </el-form>
   </div>
 </template>
@@ -65,29 +60,31 @@
 <script>
 import { validUsername } from '@/utils/validate'
 import menu from '@/api/menu'
+import login from '@/api/login'
 import Router from 'vue-router'
+import { setToken } from '@/sessionStorage/token'
 
 export default {
   name: 'Login',
   data () {
     const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
+      if (value === '') {
+        callback(new Error('账号不能为空'))
       } else {
         callback()
       }
     }
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
-        callback(new Error('The password can not be less than 6 digits'))
+        callback(new Error('密码至少六位'))
       } else {
         callback()
       }
     }
     return {
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        account: '',
+        password: ''
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -119,19 +116,35 @@ export default {
     },
     handleLogin () {
       this.$refs.loginForm.validate(valid => {
-        if (valid) {
-          this.loading = true
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
-            this.$router.push({ path: this.redirect || '/' })
-            this.loading = false;
-          }, err => {
-            this.loading = false;
-            console.log(err);
-          });
-        } else {
-          console.log('error submit!!')
-          return false
-        }
+        if (!valid)
+          return false;
+
+        this.loading = true
+        // this.$store.dispatch('user/login', this.loginForm)
+        this.$async.waterfall([
+          fn => {
+            login.isLogin(this.loginForm).then(res => {
+              res.isExist ? fn(null, res.token) : fn('账号或密码错误');
+            }, fn);
+          },
+          (token, fn) => {
+            setToken(token);
+            menu.getMenuTree().then(res => {
+              this.$store.dispatch('permission/generateRoutes', {
+                routes: res,
+                roles: ['admin']
+              });
+              this.$router.addRoutes(res);
+              this.$router.push({ path: this.redirect || '/' });
+              fn();
+            }, fn);
+          }
+        ], err => {
+          this.loading = false;
+          if (err)
+            this.$message.error(err);
+        })
+
       })
     }
   }
