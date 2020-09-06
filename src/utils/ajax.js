@@ -5,25 +5,29 @@ import {
 } from 'element-ui'
 import store from '@/store'
 import {
-  getToken
-} from '@/sessionStorage/token'
+  getSessionId,
+  removeSessionId
+} from '@/sessionStorage/sessionId'
 import querystring from 'querystring'
 
 const ajax = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
+  baseURL: process.env.VUE_APP_BASE_API,
   timeout: 5000 // request timeout
 })
 
 //请求拦截器
 ajax.interceptors.request.use(
   config => {
+    if (getSessionId()) {
+      config.data = {
+        ...config.data,
+        sessionId: getSessionId()
+      }
+    }
     // 对 post 请求数据进行处理
     if (config.method === 'post') {
-      //将post中的数据转化格式，避免客户端再发送一次options请求
-      config.data = querystring.stringify(config.data);
-    }
-    if (getToken()) {
-      config.headers['Authorization'] = getToken();
+      // //将post中的数据转化格式，避免客户端再发送一次options请求
+      // config.data = querystring.stringify(config.data);
     }
     return config
   },
@@ -37,24 +41,20 @@ ajax.interceptors.request.use(
 ajax.interceptors.response.use(
   response => {
     const res = response.data
-    if (res.code !== 0) {
+    if (res.err !== 0) {
       Message({
-        message: res.message || 'Error',
+        message: res.err || 'Error',
         type: 'error',
         duration: 5 * 1000
       })
 
-      // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
-      if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
-        // to re-login
-        MessageBox.confirm('You have been logged out, you can cancel to stay on this page, or log in again', 'Confirm logout', {
-          confirmButtonText: 'Re-Login',
-          cancelButtonText: 'Cancel',
+      if (res.err === 504) {
+        MessageBox.confirm('账号认证失效，是否重新登录？', '认证失效', {
+          confirmButtonText: '重新登录',
+          cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          store.dispatch('user/resetToken').then(() => {
-            location.reload()
-          })
+          removeSessionId();
         })
       }
       return Promise.reject(new Error(res.message || 'Error'))

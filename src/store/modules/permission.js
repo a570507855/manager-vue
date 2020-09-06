@@ -46,8 +46,13 @@ const state = {
 
 const mutations = {
   SET_ROUTES: (state, routes) => {
-    state.asyncRoutes = routes
-    state.routes = constantRoutes.concat(routes)
+    state.asyncRoutes = routes;
+    state.routes = constantRoutes.concat([...routes, {
+      path: '*',
+      redirect: '/404',
+      sort: 100,
+      hidden: true
+    }]);
   }
 }
 

@@ -1,20 +1,20 @@
 <template>
   <div class="app-container">
     <div v-show="!isEdit">
-      <el-button @click="onAdd('add',0)" style="margin-bottom:10px;" type="primary">添加主菜单</el-button>
+      <el-button @click="onAdd(1)" style="margin-bottom:10px;" type="primary">添加主菜单</el-button>
       <el-table
         :border="true"
-        :data="async_routes"
+        :data="menus"
         :row-class-name="tableRowClassName"
-        row-key="id"
+        row-key="path"
         style="margin-right:30px;"
       >
         <el-table-column align="center" label="菜单" min-width="160" prop="meta.title"></el-table-column>
         <el-table-column align="center" label="路径" min-width="160" prop="path"></el-table-column>
-        <el-table-column label="操作" prop="parent" width="280">
+        <el-table-column label="操作" width="280">
           <template slot-scope="scope">
             <el-button
-              @click="onAdd('edit',scope.row)"
+              @click="onAdd(0,scope.row)"
               circle
               icon="el-icon-edit"
               size="mini"
@@ -30,10 +30,10 @@
             <el-button @click="onUp(scope.row)" circle size="mini" v-if="!scope.row.isFirst">上</el-button>
             <el-button @click="onDown(scope.row)" circle size="mini" v-if="!scope.row.isLast">下</el-button>
             <el-button
-              @click="onAdd('add',scope.row.id)"
+              @click="onAdd(2,scope.row)"
               size="mini"
               type="primary"
-              v-if="scope.row.parent === 0"
+              v-if="scope.row.level === 1"
             >添加子菜单</el-button>
           </template>
         </el-table-column>
@@ -41,7 +41,7 @@
     </div>
 
     <div v-if="isEdit">
-      <menu-add :parent="parent" :row="row" @onBack="back"></menu-add>
+      <menu-add :row="row" :type="type" @onBack="back"></menu-add>
     </div>
   </div>
 </template>
@@ -61,13 +61,16 @@ export default {
       childMenu: [],
       isEdit: false,
       row: {},
-      parent: -1
+      type: -1
     }
   },
   computed: {
     ...mapGetters([
       'async_routes'
     ]),
+    menus () {
+      return menu.menus;
+    },
     windowHeight () {
       return window.innerHeight - 100;
     }
@@ -75,13 +78,21 @@ export default {
   methods: {
     onAdd (type, param) {
       this.isEdit = true;
-      if (type === 'add') {
-        this.parent = param;
-        this.row = {};
-      }
-      else {
-        this.parent = param.parent;
+      this.type = type;
+      if (type === 0) {//编辑
         this.row = param;
+      }
+      else {//新增
+        this.row = {
+          path: '',
+          meta: {
+            icon: '',
+            title: ''
+          },
+          value: 0,
+          parent: param ? param.value : 0,
+          children: []
+        };
       }
     },
     onDelete (row) {
@@ -93,7 +104,16 @@ export default {
           this.$confirm('确定删除？').then(() => { fn() }, fn);
         },
         fn => {
-          menu.delete({ ids: row.id }).then(() => {
+          if (row.parent) {//二级菜单
+            let parent = menu.group[row.parent].children;
+            let index = parent.findIndex(item => item.value === row.value);
+            parent.splice(index, 1);
+          }
+          else {
+            let index = menu.menus.findIndex(item => item.value === row.value);
+            menu.menus.splice(index, 1);
+          }
+          menu.addOrSave().then(() => {
             this.$message.success('操作成功');
             fn();
           }, fn);
@@ -105,11 +125,29 @@ export default {
         }
       });
     },
+    swapMenu (row, count) {
+      let children = row.parent ? menu.group[row.parent].children : menu.menus;
+      let index = children.findIndex(item => item.value === row.value);
+      let temp = children[index];
+      children[index] = children[index + count];
+      children[index + count] = temp;
+      menu.addOrSave().then(res => {
+        if (!res.err) {
+          this.$message({
+            message: '操作成功',
+            type: 'success'
+          });
+        }
+        else {
+          this.$message.error(res.err);
+        }
+      });
+    },
     onUp (row) {
-      menu.swapMenu(row, 'up');
+      this.swapMenu(row, -1);
     },
     onDown (row) {
-      menu.swapMenu(row, 'down');
+      this.swapMenu(row, 1);
     },
     back () {
       this.isEdit = false;

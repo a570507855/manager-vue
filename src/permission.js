@@ -3,11 +3,11 @@ import store from './store'
 import {
   Message
 } from 'element-ui'
-import NProgress from 'nprogress' // progress bar
-import 'nprogress/nprogress.css' // progress bar style
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 import {
-  getToken
-} from '@/sessionStorage/token'
+  getSessionId
+} from '@/sessionStorage/sessionId'
 
 import getPageTitle from '@/utils/get-page-title'
 import menu from '@/api/menu'
@@ -24,17 +24,11 @@ router.beforeEach(async (to, from, next) => {
 
   document.title = getPageTitle(to.meta.title)
 
-  const hasToken = getToken();
+  const hasSessionId = getSessionId();
 
-  if (hasToken) {
+  if (hasSessionId) {
     if (!store.getters.permission_routes.length) {
-      menu.getMenuTree().then(res => {
-        store.dispatch('permission/generateRoutes', {
-          routes: res,
-          roles: ['admin']
-        });
-        router.addRoutes(res);
-      });
+      menu.getMenuTree();
     }
     if (to.path === '/login') {
       next({
@@ -47,10 +41,8 @@ router.beforeEach(async (to, from, next) => {
         next()
       } else {
         try {
-
           next()
         } catch (error) {
-
           Message.error(error || 'Has Error')
           next(`/login?redirect=${to.path}`)
           NProgress.done()
@@ -58,13 +50,9 @@ router.beforeEach(async (to, from, next) => {
       }
     }
   } else {
-    /* has no token*/
-
     if (whiteList.indexOf(to.path) !== -1) {
-      // in the free login whitelist, go directly
       next()
     } else {
-      // other pages that do not have permission to access are redirected to the login page.
       next(`/login?redirect=/home`)
       NProgress.done()
     }
@@ -72,6 +60,5 @@ router.beforeEach(async (to, from, next) => {
 })
 
 router.afterEach(() => {
-  // finish progress bar
   NProgress.done()
 })

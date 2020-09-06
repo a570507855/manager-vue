@@ -62,7 +62,7 @@ import { validUsername } from '@/utils/validate'
 import menu from '@/api/menu'
 import login from '@/api/login'
 import Router from 'vue-router'
-import { setToken } from '@/sessionStorage/token'
+import { setSessionId } from '@/sessionStorage/sessionId'
 
 export default {
   name: 'Login',
@@ -120,21 +120,15 @@ export default {
           return false;
 
         this.loading = true
-        // this.$store.dispatch('user/login', this.loginForm)
         this.$async.waterfall([
           fn => {
             login.isLogin(this.loginForm).then(res => {
-              res.isExist ? fn(null, res.token) : fn('账号或密码错误');
+              res ? fn(null, res) : fn('账号或密码错误');
             }, fn);
           },
-          (token, fn) => {
-            setToken(token);
-            menu.getMenuTree().then(res => {
-              this.$store.dispatch('permission/generateRoutes', {
-                routes: res,
-                roles: ['admin']
-              });
-              this.$router.addRoutes(res);
+          (sessionId, fn) => {
+            setSessionId(sessionId);
+            menu.getMenuTree().then(() => {
               this.$router.push({ path: this.redirect || '/' });
               fn();
             }, fn);
