@@ -6,14 +6,16 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import locale from 'element-ui/lib/locale/lang/zh-CN' // lang i18n
 
-import '@/styles/index.scss' // 
+import '@/styles/index.scss'
 
 import App from './App'
 import store from './store'
 import router from './router'
 
-import '@/icons' // 
-import '@/permission' // 
+import '@/icons'
+import '@/permission'
+
+import '@/filter'
 
 import async from 'async'
 

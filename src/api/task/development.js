@@ -1,10 +1,10 @@
 import ajax from '@/utils/ajax'
 
 export default {
-  isLogin(data) {
+  findPage(data) {
     return new Promise((resolve, reject) => {
       ajax({
-        url: '/login/login',
+        url: '/task/dev-find-page',
         method: 'post',
         data
       }).then(res => {
