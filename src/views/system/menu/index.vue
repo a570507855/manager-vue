@@ -2,13 +2,7 @@
   <div class="app-container">
     <div v-show="!isEdit">
       <el-button @click="onAdd(1)" style="margin-bottom:10px;" type="primary">添加主菜单</el-button>
-      <el-table
-        :border="true"
-        :data="menus"
-        :row-class-name="tableRowClassName"
-        row-key="path"
-        style="margin-right:30px;"
-      >
+      <el-table :border="true" :data="menus" row-key="path" style="margin-right:30px;">
         <el-table-column align="center" label="菜单" min-width="160" prop="meta.title"></el-table-column>
         <el-table-column align="center" label="路径" min-width="160" prop="path"></el-table-column>
         <el-table-column label="操作" width="280">
@@ -46,10 +40,8 @@
   </div>
 </template>
 <script>
-import Layout from '@/layout'
 import menu from '@/api/menu'
 import menuAdd from './menu-add'
-import { mapGetters } from 'vuex'
 export default {
   name: 'Menu',
   components: {
@@ -65,9 +57,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      'async_routes'
-    ]),
     menus () {
       return menu.menus;
     },
@@ -101,28 +90,23 @@ export default {
 
       this.$async.waterfall([
         fn => {
-          this.$confirm('确定删除？').then(() => { fn() }, fn);
+          this.$confirm('确定删除？').then(() => fn(), fn);
         },
         fn => {
-          if (row.parent) {//二级菜单
-            let parent = menu.group[row.parent].children;
-            let index = parent.findIndex(item => item.value === row.value);
-            parent.splice(index, 1);
-          }
-          else {
-            let index = menu.menus.findIndex(item => item.value === row.value);
-            menu.menus.splice(index, 1);
-          }
-          menu.addOrSave().then(() => {
-            this.$message.success('操作成功');
-            fn();
-          }, fn);
+          this.$xloading.show();
+          let children = row.parent ? menu.group[row.parent].children : menu.menus;
+          let index = children.findIndex(item => item.value === row.value);
+          children.splice(index, 1);
+          menu.addOrSave().then(fn, fn);
         }
       ], err => {
-        if (err && err !== 'cancel') {
-          this.$message.error('操作失败');
-          return console.log(err);
-        }
+        this.$xloading.hide().then(() => {
+          if (err && err !== 'cancel')
+            return this.$message.error(err);
+
+          if (!err)
+            this.$message.success('删除成功!');
+        });
       });
     },
     swapMenu (row, count) {
@@ -131,16 +115,19 @@ export default {
       let temp = children[index];
       children[index] = children[index + count];
       children[index + count] = temp;
-      menu.addOrSave().then(res => {
-        if (!res.err) {
-          this.$message({
-            message: '操作成功',
-            type: 'success'
-          });
+
+      this.$async.waterfall([
+        fn => {
+          this.$xloading.show();
+          menu.addOrSave().then(fn, fn);
         }
-        else {
-          this.$message.error(res.err);
-        }
+      ], err => {
+        this.$xloading.hide().then(() => {
+          if (err)
+            return this.$message.error(res.err);
+
+          this.$message({ message: '操作成功', type: 'success' });
+        });
       });
     },
     onUp (row) {
@@ -151,11 +138,6 @@ export default {
     },
     back () {
       this.isEdit = false;
-    },
-    tableRowClassName ({ row, index }) {
-      if (row.path === '*') {
-        return 'el-table-row-hide';
-      }
     }
   },
   mounted () {

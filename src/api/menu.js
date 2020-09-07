@@ -106,12 +106,12 @@ export default {
         url: '/menu/add-or-save',
         method: 'post',
         data
-      }).then(res => {
+      }).then(() => {
         sortMenu(this.menus);
         setAsyncRoutes(this.menus);
         this.group = getGroupAndMaxValue(this.menus).group;
         this.maxValue = getGroupAndMaxValue(this.menus).maxValue;
-        resolve(res);
+        resolve();
       }, reject);
     });
   },

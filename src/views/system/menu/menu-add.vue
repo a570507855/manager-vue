@@ -20,10 +20,6 @@
 
 <script>
 import menu from '@/api/menu'
-import {
-  MessageBox,
-  Message
-} from 'element-ui'
 export default {
   props: {
     row: Object,
@@ -60,7 +56,7 @@ export default {
             value: menu.maxValue,
             level: 1,
             children: []
-          })
+          });
           break;
         case 2://新增子菜单
           menu.maxValue += 1;
@@ -70,24 +66,23 @@ export default {
             level: 2,
             parent: this.form.parent,
             children: []
-          })
+          });
           break;
       }
+      this.$xloading.show();
+      this.$async.waterfall([
+        fn => {
+          menu.addOrSave().then(fn, fn);
+        }
+      ], err => {
+        this.$xloading.hide().then(() => {
+          if (err)
+            return this.$message.error(err);
 
-      menu.addOrSave().then(res => {
-        if (!res.err) {
-          this.$message({
-            message: '操作成功',
-            type: 'success'
-          });
-          setTimeout(() => {
-            this.$emit('onBack');
-          }, 2000)
-        }
-        else {
-          this.$message.error(res.err);
-        }
-      })
+          this.$message({ message: '操作成功', type: 'success' });
+          setTimeout(() => this.$emit('onBack'), 1500);
+        });
+      });
     }
   },
   mounted () {
@@ -98,7 +93,7 @@ export default {
       level: this.row.level,
       parent: this.row.parent,
       children: []
-    }
+    };
   }
 }
 </script>
