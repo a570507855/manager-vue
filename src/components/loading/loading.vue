@@ -17,8 +17,12 @@ export default {
       this.isShow = true;
     },
     hide () {
-      this.isShow = false;
-      return Promise.resolve();
+      return new Promise(resolve => {
+        setTimeout(() => {
+          this.isShow = false;
+          resolve();
+        }, 200);
+      });
     }
   }
 }
