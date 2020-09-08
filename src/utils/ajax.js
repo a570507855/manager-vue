@@ -73,4 +73,14 @@ ajax.interceptors.response.use(
   }
 )
 
+export const ajaxPost = (url, data) => {
+  return new Promise((resolve, reject) => {
+    ajax({
+      url,
+      method: 'post',
+      data
+    }).then(res => resolve(res.data), reject);
+  })
+}
+
 export default ajax

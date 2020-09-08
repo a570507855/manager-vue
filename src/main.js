@@ -6,6 +6,7 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import locale from 'element-ui/lib/locale/lang/zh-CN'
 import loading from '@/components/loading'
+import iframe from '@/components/iframe'
 
 import '@/styles/index.scss'
 
@@ -28,6 +29,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 Vue.use(loading);
+Vue.use(iframe);
 Vue.use(ElementUI, {
   locale
 })
