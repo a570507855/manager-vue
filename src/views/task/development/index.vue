@@ -1,14 +1,15 @@
 <template>
   <div class="app-container" id="development">
-    <el-form :inline="true" :model="query" class="demo-form-inline">
+    <el-form :inline="true" class="demo-form-inline">
       <el-form-item>
-        <el-input placeholder="任务名称" prefix-icon="el-icon-search" v-model="query.taskName"></el-input>
+        <el-input placeholder="任务名称" prefix-icon="el-icon-search" v-model="queryTaskName"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-select placeholder="状态" v-model="query.status">
-          <el-option label="暂未处理" value="1"></el-option>
-          <el-option label="正在处理" value="2"></el-option>
-          <el-option label="任务完成" value="3"></el-option>
+        <el-select placeholder="状态" v-model="queryStatus">
+          <el-option label="全部" value></el-option>
+          <el-option :value="1" label="暂未处理"></el-option>
+          <el-option :value="2" label="正在处理"></el-option>
+          <el-option :value="3" label="任务完成"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -34,14 +35,12 @@
         <template slot-scope="scope">{{scope.row.createOn | dateTimeFormat}}</template>
       </el-table-column>
       <el-table-column align="center" label="完成时间" min-width="160" prop="completeOn">
-        <template
-          slot-scope="scope"
-        >{{scope.row.completeOn ? (scope.row.completeOn | dateTimeFormat) : "无"}}</template>
+        <template slot-scope="scope">{{scope.row.completeOn | dateTimeFormat}}</template>
       </el-table-column>
-      <el-table-column align="center" label="操作" width="120">
+      <el-table-column align="center" fixed="right" label="操作" width="120">
         <template slot-scope="scope">
           <el-button
-            @click="onAdd(0,scope.row)"
+            @click="onEdit(scope.row)"
             circle
             icon="el-icon-edit"
             size="mini"
@@ -62,16 +61,15 @@
 
 <script>
 import devApi from '@/api/task/development'
+import { ajaxPost } from '@/utils/ajax'
 
 export default {
   name: "Development",
   data () {
     return {
       devList: [],
-      query: {
-        taskName: '',
-        status: ''
-      },
+      queryTaskName: '',
+      queryStatus: '',
       statusArr: {
         1: { text: '暂未处理', color: '#F56C6C' },
         2: { text: '正在处理', color: '#E6A23C' },
@@ -81,25 +79,63 @@ export default {
   },
   methods: {
     onAdd () {
-
+      this.$xiframe
+        .load('task/development/add-or-save', { style: { width: '560px', minHeight: '200px' } })
+        .then(this.onSearch);
     },
-    onDelete () {
+    onEdit (row) {
+      this.$xiframe
+        .load('task/development/add-or-save', { style: { width: '560px', minHeight: '200px' }, row: row })
+        .then(this.onSearch);
+    },
+    onDelete (row) {
+      if (row.status === 3)
+        return this.$message.warning('已完成任务不可删除!');
+
+      this.$async.waterfall([
+        fn => {
+          this.$confirm('确定删除该条数据吗？').then(() => fn(), fn);
+        },
+        fn => {
+          this.$xloading.show();
+          ajaxPost('/task/dev-remove', { ids: [row.id] }).then(fn, fn);
+        }
+      ], err => {
+        this.$xloading.hide().then(() => {
+          if (err && err !== 'cancel')
+            this.$message.error(err);
+
+          if (!err) {
+            this.$message.success('删除成功!');
+            this.onSearch();
+          }
+        })
+      })
 
     },
     onSearch () {
-
-    },
-    filterStatus (status) {
+      let query = {};
+      this.queryTaskName ? query.taskName = this.queryTaskName : '';
+      this.queryStatus ? query.status = this.queryStatus : '';
+      this.$xloading.show();
+      this.$async.waterfall([
+        fn => {
+          ajaxPost('/task/dev-find-page', { ...query, skip: 0, take: 10 }).then(res => {
+            this.devList = res.rows;
+            fn();
+          }, fn);
+        }
+      ], err => {
+        this.$xloading.hide().then(() => {
+          if (err)
+            this.$message.error(err);
+        });
+      })
 
     }
   },
   mounted () {
-    devApi.findPage({
-      skip: 0,
-      take: 10
-    }).then(res => {
-      this.devList = res.rows;
-    })
+    this.onSearch();
   }
 }
 </script>
