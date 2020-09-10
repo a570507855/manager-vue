@@ -1,14 +1,11 @@
 <template>
-  <div id="dev-add-or-save">
+  <div id="bug-add-or-save">
     <el-form :model="form" label-width="80px" ref="form">
-      <el-form-item label="任务名称">
-        <el-input v-model="form.name"></el-input>
-      </el-form-item>
-      <el-form-item label="任务描述">
+      <el-form-item label="Bug描述">
         <el-input type="textarea" v-model="form.desc"></el-input>
       </el-form-item>
-      <el-form-item label="功能需求">
-        <el-input rows="4" type="textarea" v-model="form.demand"></el-input>
+      <el-form-item label="解决方法">
+        <el-input rows="4" type="textarea" v-model="form.solution"></el-input>
       </el-form-item>
       <div style="text-align:center">
         <el-button @click="onSubmit" type="primary">完成</el-button>
@@ -22,14 +19,13 @@
 import { ajaxPost } from '@/utils/ajax'
 
 export default {
-  name: "DevAddOrSave",
+  name: "BugAddOrSave",
   props: ['row'],
   data () {
     return {
       form: {
-        name: '',
         desc: '',
-        demand: ''
+        solution: ''
       }
     }
   },
@@ -38,7 +34,7 @@ export default {
       this.$xloading.show();
       this.$async.waterfall([
         fn => {
-          ajaxPost('/task/dev-add-or-save', this.form).then(fn, fn);
+          ajaxPost('/task/bug-add-or-save', this.form).then(fn, fn);
         }
       ], err => {
         this.$xloading.hide().then(() => {
@@ -57,9 +53,8 @@ export default {
   mounted () {
     if (this.row)
       this.form = {
-        name: this.row.name,
         desc: this.row.desc,
-        demand: this.row.demand,
+        solution: this.row.solution,
         id: this.row.id
       };
   }

@@ -1,8 +1,8 @@
 <template>
-  <div class="app-container" id="development">
+  <div class="app-container" id="Bug">
     <el-form :inline="true" class="demo-form-inline">
       <el-form-item>
-        <el-input placeholder="任务名称" prefix-icon="el-icon-search" v-model="queryName"></el-input>
+        <el-input placeholder="bug描述" prefix-icon="el-icon-search" v-model="queryDesc"></el-input>
       </el-form-item>
       <el-form-item>
         <el-select placeholder="状态" v-model="queryState">
@@ -23,11 +23,10 @@
         <el-button @click="onAdd" type="primary">新增</el-button>
       </el-form-item>
     </el-form>
-    <el-table :border="true" :data="devList">
+    <el-table :border="true" :data="bugList">
       <el-table-column align="center" label="ID" min-width="160" prop="id"></el-table-column>
-      <el-table-column align="center" label="任务" min-width="160" prop="name"></el-table-column>
       <el-table-column align="center" label="描述" min-width="160" prop="desc"></el-table-column>
-      <el-table-column align="center" label="需求" min-width="160" prop="demand"></el-table-column>
+      <el-table-column align="center" label="解决方法" min-width="160" prop="solution"></el-table-column>
       <el-table-column align="center" label="状态" min-width="160" prop="state">
         <template slot-scope="scope">
           <div :style="{color:states[scope.row.state].color}">
@@ -77,11 +76,11 @@
 import { ajaxPost } from '@/utils/ajax'
 
 export default {
-  name: "Development",
+  name: "Bug",
   data () {
     return {
-      devList: [],
-      queryName: '',
+      bugList: [],
+      queryDesc: '',
       queryState: '',
       states: {
         1: { text: '待处理', color: '#F56C6C' },
@@ -93,12 +92,12 @@ export default {
   methods: {
     onAdd () {
       this.$xiframe
-        .load('task/development/add-or-save', { style: { width: '560px', minHeight: '200px' } })
+        .load('task/bug/add-or-save', { style: { width: '560px', minHeight: '200px' } })
         .then(this.onSearch);
     },
     onChangeState (payload) {
       payload.row.state = payload.state;
-      ajaxPost('/task/dev-add-or-save', payload.row).then(() => {
+      ajaxPost('/task/bug-add-or-save', payload.row).then(() => {
         if (payload.state === 3)
           payload.row.completeOn = Math.floor(new Date().getTime() / 1000);
         else
@@ -107,7 +106,7 @@ export default {
     },
     onDelete (row) {
       if (row.state === 3)
-        return this.$message.warning('已完成任务不可删除!');
+        return this.$message.warning('已完成不可删除!');
 
       this.$async.waterfall([
         fn => {
@@ -115,7 +114,7 @@ export default {
         },
         fn => {
           this.$xloading.show();
-          ajaxPost('/task/dev-remove', { ids: [row.id] }).then(fn, fn);
+          ajaxPost('/task/bug-remove', { ids: [row.id] }).then(fn, fn);
         }
       ], err => {
         this.$xloading.hide().then(() => {
@@ -131,18 +130,18 @@ export default {
     },
     onEdit (row) {
       this.$xiframe
-        .load('task/development/add-or-save', { style: { width: '560px', minHeight: '200px' }, row: row })
+        .load('task/bug/add-or-save', { style: { width: '560px', minHeight: '200px' }, row: row })
         .then(this.onSearch);
     },
     onSearch () {
       let query = {};
-      this.queryName ? query.name = this.queryName : '';
+      this.queryDesc ? query.desc = this.queryDesc : '';
       this.queryState ? query.state = this.queryState : '';
       this.$xloading.show();
       this.$async.waterfall([
         fn => {
-          ajaxPost('/task/dev-find-page', { ...query, skip: 0, take: 10 }).then(res => {
-            this.devList = res.rows;
+          ajaxPost('/task/bug-find-page', { ...query, skip: 0, take: 10 }).then(res => {
+            this.bugList = res.rows;
             fn();
           }, fn);
         }
