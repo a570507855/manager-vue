@@ -2,20 +2,13 @@
   <div id="dev-add-or-save">
     <el-form :model="form" label-width="80px" ref="form">
       <el-form-item label="任务名称">
-        <el-input v-model="form.taskName"></el-input>
+        <el-input v-model="form.name"></el-input>
       </el-form-item>
       <el-form-item label="任务描述">
         <el-input type="textarea" v-model="form.desc"></el-input>
       </el-form-item>
       <el-form-item label="功能需求">
         <el-input rows="4" type="textarea" v-model="form.demand"></el-input>
-      </el-form-item>
-      <el-form-item label="状态">
-        <el-select placeholder="请选择" v-model="form.status">
-          <el-option :value="1" label="暂未处理"></el-option>
-          <el-option :value="2" label="正在处理"></el-option>
-          <el-option :value="3" label="任务完成"></el-option>
-        </el-select>
       </el-form-item>
       <div style="text-align:center">
         <el-button @click="onSubmit" type="primary">完成</el-button>
@@ -33,10 +26,9 @@ export default {
   data () {
     return {
       form: {
-        taskName: '',
+        name: '',
         desc: '',
-        demand: '',
-        status: 1
+        demand: ''
       }
     }
   },
@@ -65,10 +57,9 @@ export default {
   mounted () {
     if (this.row)
       this.form = {
-        taskName: this.row.taskName,
+        name: this.row.name,
         desc: this.row.desc,
         demand: this.row.demand,
-        status: this.row.status,
         id: this.row.id
       };
   }
