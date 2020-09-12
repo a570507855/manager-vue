@@ -3,12 +3,10 @@ import {
   MessageBox,
   Message
 } from 'element-ui'
-import store from '@/store'
 import {
   getSessionId,
   removeSessionId
 } from '@/sessionStorage/sessionId'
-import querystring from 'querystring'
 
 const ajax = axios.create({
   baseURL: process.env.VUE_APP_BASE_API,

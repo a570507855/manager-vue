@@ -60,9 +60,9 @@
 <script>
 import { validUsername } from '@/utils/validate'
 import menu from '@/api/menu'
-import login from '@/api/login'
 import Router from 'vue-router'
 import { setSessionId } from '@/sessionStorage/sessionId'
+import { ajaxPost } from '@/utils/ajax'
 
 export default {
   name: 'Login',
@@ -83,8 +83,8 @@ export default {
     }
     return {
       loginForm: {
-        account: '',
-        password: ''
+        account: '15259207770',
+        password: 'disueb11'
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -122,7 +122,7 @@ export default {
         this.loading = true
         this.$async.waterfall([
           fn => {
-            login.isLogin(this.loginForm).then(res => {
+            ajaxPost('/login/login', this.loginForm).then(res => {
               res ? fn(null, res) : fn('账号或密码错误');
             }, fn);
           },
