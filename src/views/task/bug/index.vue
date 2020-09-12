@@ -23,70 +23,55 @@
         <el-button @click="onAdd" type="primary">新增</el-button>
       </el-form-item>
     </el-form>
-    <el-table :border="true" :data="bugList">
-      <el-table-column align="center" label="ID" min-width="160" prop="id"></el-table-column>
-      <el-table-column align="center" label="描述" min-width="160" prop="desc"></el-table-column>
-      <el-table-column align="center" label="解决方法" min-width="160" prop="solution"></el-table-column>
-      <el-table-column align="center" label="状态" min-width="160" prop="state">
-        <template slot-scope="scope">
-          <div :style="{color:states[scope.row.state].color}">
-            {{ states[scope.row.state].text }}
-            <el-dropdown @command="onChangeState">
-              <span class="el-dropdown-link">
-                <i class="el-icon-arrow-down el-icon--right"></i>
-              </span>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item :command="{row:scope.row,state:1}">待处理</el-dropdown-item>
-                <el-dropdown-item :command="{row:scope.row,state:2}">处理中</el-dropdown-item>
-                <el-dropdown-item :command="{row:scope.row,state:3}">已完成</el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="开始时间" min-width="160" prop="createOn">
-        <template slot-scope="scope">{{scope.row.createOn | dateTimeFormat}}</template>
-      </el-table-column>
-      <el-table-column align="center" label="完成时间" min-width="160" prop="completeOn">
-        <template slot-scope="scope">{{scope.row.completeOn | dateTimeFormat}}</template>
-      </el-table-column>
-      <el-table-column align="center" fixed="right" label="操作" width="120">
-        <template slot-scope="scope">
-          <el-button
-            @click="onEdit(scope.row)"
-            circle
-            icon="el-icon-edit"
-            size="mini"
-            type="primary"
-          ></el-button>
-          <el-button
-            @click="onDelete(scope.row)"
-            circle
-            icon="el-icon-delete"
-            size="mini"
-            type="danger"
-          ></el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <x-table :columns="columns" :query="query" :url="'/task/bug-find-page'">
+      <template v-slot:state="{row}">
+        <div :style="{color:states[row.state].color}">
+          {{ states[row.state].text }}
+          <el-dropdown @command="onChangeState">
+            <span class="el-dropdown-link">
+              <i class="el-icon-arrow-down el-icon--right"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item :command="{row:row,state:1}">待处理</el-dropdown-item>
+              <el-dropdown-item :command="{row:row,state:2}">处理中</el-dropdown-item>
+              <el-dropdown-item :command="{row:row,state:3}">已完成</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
+      </template>
+      <template v-slot:op="{row}">
+        <el-button @click="onEdit(row)" circle icon="el-icon-edit" size="mini" type="primary"></el-button>
+        <el-button @click="onDelete(row)" circle icon="el-icon-delete" size="mini" type="danger"></el-button>
+      </template>
+    </x-table>
   </div>
 </template>
 
 <script>
 import { ajaxPost } from '@/utils/ajax'
+import XTable from '@/components/common/table'
 
 export default {
   name: "Bug",
   data () {
     return {
-      bugList: [],
+      query: {},
       queryDesc: '',
       queryState: '',
       states: {
         1: { text: '待处理', color: '#F56C6C' },
         2: { text: '处理中', color: '#E6A23C' },
         3: { text: '已完成', color: '#67C23A' },
-      }
+      },
+      columns: [
+        { label: 'ID', prop: 'id' },
+        { label: '描述', prop: 'desc', minWidth: 200 },
+        { label: '解决方法', prop: 'solution' },
+        { label: '状态', prop: 'state' },
+        { label: '创建时间', prop: 'createOn', timeFormat: true, sort: true },
+        { label: '解决时间', prop: 'completeOn', timeFormat: true, sort: true },
+        { label: '操作', prop: 'op', fixed: "right" }
+      ]
     }
   },
   methods: {
@@ -125,7 +110,7 @@ export default {
             this.$message.success('删除成功!');
             this.onSearch();
           }
-        })
+        });
       });
     },
     onEdit (row) {
@@ -135,27 +120,20 @@ export default {
     },
     onSearch () {
       let query = {};
-      this.queryDesc ? query.desc = this.queryDesc : '';
-      this.queryState ? query.state = this.queryState : '';
-      this.$xloading.show();
-      this.$async.waterfall([
-        fn => {
-          ajaxPost('/task/bug-find-page', { ...query, skip: 0, take: 10 }).then(res => {
-            this.bugList = res.rows;
-            fn();
-          }, fn);
-        }
-      ], err => {
-        this.$xloading.hide().then(() => {
-          if (err)
-            this.$message.error(err);
-        });
-      })
+      if (this.queryDesc)
+        query.desc = this.queryDesc
 
+      if (this.queryState)
+        query.state = this.queryState
+
+      this.query = query;
     }
   },
   mounted () {
     this.onSearch();
+  },
+  components: {
+    XTable
   }
 }
 </script>
