@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container x-table">
+  <div class="x-table">
     <el-table :border="true" :data="list" ref="XTable">
       <el-table-column align="center" type="selection" v-if="checkedRow" width="55"></el-table-column>
       <el-table-column
@@ -50,7 +50,7 @@ export default {
     },
     query: {
       type: Object,
-      default: {}
+      default: () => { }
     },
     checkedRow: {
       type: Boolean,
