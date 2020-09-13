@@ -42,6 +42,7 @@
 <script>
 import menu from '@/api/menu'
 import menuAdd from './menu-add'
+import { ajaxPost } from '@/utils/ajax'
 export default {
   name: 'Menu',
   components: {
@@ -91,6 +92,9 @@ export default {
           let index = children.findIndex(item => item.value === row.value);
           children.splice(index, 1);
           menu.addOrSave().then(fn, fn);
+        },
+        fn => {
+          ajaxPost('/role/update-power-by-menuID', { menuID: row.value }).then(fn, fn);
         }
       ], err => {
         this.$xloading.hide().then(() => {
