@@ -2,7 +2,7 @@
   <div class="app-container">
     <div v-show="!isEdit">
       <el-button @click="onAdd(1)" style="margin-bottom:10px;" type="primary">添加主菜单</el-button>
-      <el-table :border="true" :data="menus" row-key="path" style="margin-right:30px;">
+      <el-table :border="true" :data="menus" :default-expand-all="true" row-key="value">
         <el-table-column align="center" label="菜单" min-width="160" prop="meta.title"></el-table-column>
         <el-table-column align="center" label="路径" min-width="160" prop="path"></el-table-column>
         <el-table-column label="操作" width="280">
@@ -53,15 +53,8 @@ export default {
       childMenu: [],
       isEdit: false,
       row: {},
-      type: -1
-    }
-  },
-  computed: {
-    menus () {
-      return menu.menus;
-    },
-    windowHeight () {
-      return window.innerHeight - 100;
+      type: -1,
+      menus: menu.menus
     }
   },
   methods: {
@@ -112,13 +105,14 @@ export default {
     swapMenu (row, count) {
       let children = row.parent ? menu.group[row.parent].children : menu.menus;
       let index = children.findIndex(item => item.value === row.value);
-      let temp = children[index];
-      children[index] = children[index + count];
-      children[index + count] = temp;
-
+      let temp = { ...children[index] };
+      Object.keys(children[index]).forEach(key => {
+        children[index][key] = children[index + count][key];
+        children[index + count][key] = temp[key];
+      });
+      this.$xloading.show();
       this.$async.waterfall([
         fn => {
-          this.$xloading.show();
           menu.addOrSave().then(fn, fn);
         }
       ], err => {
@@ -126,7 +120,7 @@ export default {
           if (err)
             return this.$message.error(res.err);
 
-          this.$message({ message: '操作成功', type: 'success' });
+          this.$message.success('操作成功');
         });
       });
     },
@@ -139,8 +133,6 @@ export default {
     back () {
       this.isEdit = false;
     }
-  },
-  mounted () {
   }
 }
 </script>
