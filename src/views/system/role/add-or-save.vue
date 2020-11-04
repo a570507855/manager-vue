@@ -24,8 +24,7 @@
 </template>
 
 <script>
-import { ajaxPost } from '@/utils/ajax'
-import menu from '@/api/menu'
+import menu from '@/script/lib/menu'
 
 export default {
   name: "RoleAddOrSave",

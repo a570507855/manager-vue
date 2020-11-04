@@ -40,9 +40,8 @@
   </div>
 </template>
 <script>
-import menu from '@/api/menu'
+import menu from '@/script/lib/menu'
 import menuAdd from './menu-add'
-import { ajaxPost } from '@/utils/ajax'
 export default {
   name: 'Menu',
   components: {

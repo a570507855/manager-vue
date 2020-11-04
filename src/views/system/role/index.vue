@@ -5,7 +5,7 @@
         <el-button @click="onAdd" type="primary">新增</el-button>
       </el-form-item>
     </el-form>
-    <x-table :columns="columns" :query="query" :url="'/role/find-page'">
+    <uc-page-grid :columns="columns" :query="query" :url="'/role/find-page'">
       <template v-slot:power="{row}">
         <div :key="key" v-for="(value,key) in row.power">
           <span
@@ -18,14 +18,13 @@
         <el-button @click="onEdit(row)" circle icon="el-icon-edit" size="mini" type="primary"></el-button>
         <el-button @click="onDelete(row)" circle icon="el-icon-delete" size="mini" type="danger"></el-button>
       </template>
-    </x-table>
+    </uc-page-grid>
   </div>
 </template>
 
 <script>
-import { ajaxPost } from '@/utils/ajax'
-import XTable from '@/components/common/table'
-import menu from '@/api/menu'
+import ucPageGrid from '@/script/uc/page-grid'
+import menu from '@/script/lib/menu'
 
 export default {
   name: "Role",
@@ -82,7 +81,7 @@ export default {
     }
   },
   components: {
-    XTable
+    ucPageGrid
   },
   mounted () {
     this.onSearch();

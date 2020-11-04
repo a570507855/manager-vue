@@ -1,43 +1,27 @@
 import Vue from 'vue'
-
-import 'normalize.css/normalize.css' // A modern alternative to CSS resets
-
 import ElementUI from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
 import locale from 'element-ui/lib/locale/lang/zh-CN'
-import loading from '@/components/loading'
-import iframe from '@/components/iframe'
-
-import '@/styles/index.scss'
+import loading from '@/script/uc/loading'
+import post from '@/script/lib/post-sdk'
 
 import App from './App'
 import store from './store'
 import router from './router'
 
+import 'element-ui/lib/theme-chalk/index.css'
+import 'normalize.css/normalize.css'
+import '@/css/index.scss'
 import '@/icons'
 import '@/permission'
-
-import '@/filter'
-
-import async from 'async'
-
-if (process.env.NODE_ENV === 'production') {
-  const {
-    mockXHR
-  } = require('../mock')
-  mockXHR()
-}
+import '@/script/filter'
 
 Vue.use(loading);
-Vue.use(iframe);
 Vue.use(ElementUI, {
   locale
 })
-// 如果想要中文版 element-ui，按如下方式声明
-// Vue.use(ElementUI)
 
 Vue.config.productionTip = false
-Vue.prototype.$async = async
+Vue.prototype.$post = post;
 new Vue({
   el: '#app',
   router,

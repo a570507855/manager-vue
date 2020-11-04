@@ -23,19 +23,18 @@
         <el-button @click="onAdd" type="primary">新增</el-button>
       </el-form-item>
     </el-form>
-    <x-table :columns="columns" :query="query" :url="'/user/find-page'">
+    <uc-page-grid :columns="columns" :query="query" :url="'/user/find-page'">
       <template v-slot:sex="{row}">{{ row.sex === 1? '男':'女' }}</template>
       <template v-slot:op="{row}">
         <el-button @click="onEdit(row)" circle icon="el-icon-edit" size="mini" type="primary"></el-button>
         <el-button @click="onDelete(row)" circle icon="el-icon-delete" size="mini" type="danger"></el-button>
       </template>
-    </x-table>
+    </uc-page-grid>
   </div>
 </template>
 
 <script>
-import { ajaxPost } from '@/utils/ajax'
-import XTable from '@/components/common/table'
+import ucPageGrid from '@/script/uc/page-grid'
 
 export default {
   name: "Bug",
@@ -122,7 +121,7 @@ export default {
     this.onSearch();
   },
   components: {
-    XTable
+    ucPageGrid
   }
 }
 </script>

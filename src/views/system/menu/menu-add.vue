@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import menu from '@/api/menu'
+import menu from '@/script/lib/menu'
 export default {
   props: {
     row: Object,

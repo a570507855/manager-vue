@@ -23,7 +23,6 @@
 </template>
 
 <script>
-import { ajaxPost } from '@/utils/ajax'
 
 export default {
   name: "UserAddOrSave",

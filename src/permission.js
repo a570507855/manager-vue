@@ -6,11 +6,11 @@ import {
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import {
-  getSessionId
-} from '@/sessionStorage/sessionId'
+  getToken
+} from '@/script/lib/token'
 
-import getPageTitle from '@/utils/get-page-title'
-import menu from '@/api/menu'
+import getPageTitle from '@/script/lib/get-page-title'
+import menu from '@/script/lib/menu'
 
 NProgress.configure({
   showSpinner: false
@@ -24,9 +24,9 @@ router.beforeEach(async (to, from, next) => {
 
   document.title = getPageTitle(to.meta.title)
 
-  const hasSessionId = getSessionId();
+  const hasToken = getToken();
 
-  if (hasSessionId) {
+  if (hasToken) {
     if (!store.getters.permission_routes.length) {
       menu.getMenuTree();
     }

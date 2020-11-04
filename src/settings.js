@@ -12,5 +12,11 @@ module.exports = {
    * @type {boolean} true | false
    * @description Whether show the logo in sidebar
    */
-  sidebarLogo: false
+  sidebarLogo: false,
+  development: {
+    baseURL: 'http://localhost:8888/'
+  },
+  production: {
+    baseURL: '/'
+  }
 }

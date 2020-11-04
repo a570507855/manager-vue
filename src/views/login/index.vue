@@ -1,13 +1,6 @@
 <template>
   <div class="login-container">
-    <el-form
-      :model="loginForm"
-      :rules="loginRules"
-      auto-complete="on"
-      class="login-form"
-      label-position="left"
-      ref="loginForm"
-    >
+    <el-form :model="loginForm" :rules="loginRules" auto-complete="on" class="login-form" label-position="left" ref="loginForm">
       <div class="title-container">
         <h3 class="title">登录</h3>
       </div>
@@ -16,133 +9,99 @@
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
-        <el-input
-          auto-complete="on"
-          name="account"
-          placeholder="账号"
-          ref="account"
-          tabindex="1"
-          type="text"
-          v-model="loginForm.account"
-        />
+        <el-input auto-complete="on" name="account" placeholder="账号" ref="account" tabindex="1" type="text" v-model="loginForm.account" />
       </el-form-item>
 
       <el-form-item prop="password">
         <span class="svg-container">
           <svg-icon icon-class="password" />
         </span>
-        <el-input
-          :key="passwordType"
-          :type="passwordType"
-          @keyup.enter.native="handleLogin"
-          auto-complete="on"
-          name="password"
-          placeholder="密码"
-          ref="password"
-          tabindex="2"
-          v-model="loginForm.password"
-        />
+        <el-input :key="passwordType" :type="passwordType" @keyup.enter.native="handleLogin" auto-complete="on" name="password" placeholder="密码" ref="password" tabindex="2" v-model="loginForm.password" />
         <span @click="showPwd" class="show-pwd">
           <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
         </span>
       </el-form-item>
 
-      <el-button
-        :loading="loading"
-        @click.native.prevent="handleLogin"
-        style="width:100%;margin-bottom:30px;"
-        type="primary"
-      >登录</el-button>
+      <el-button :loading="loading" @click.native.prevent="handleLogin" style="width: 100%; margin-bottom: 30px" type="primary">登录</el-button>
     </el-form>
   </div>
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
-import menu from '@/api/menu'
-import Router from 'vue-router'
-import { setSessionId } from '@/sessionStorage/sessionId'
-import { ajaxPost } from '@/utils/ajax'
+import { validUsername } from '@/script/lib/validate';
+import menu from '@/script/lib/menu';
+import Router from 'vue-router';
+import { setToken } from '@/script/lib/token';
 
 export default {
   name: 'Login',
-  data () {
+  data() {
     const validateUsername = (rule, value, callback) => {
       if (value === '') {
-        callback(new Error('账号不能为空'))
+        callback(new Error('账号不能为空'));
       } else {
-        callback()
+        callback();
       }
-    }
+    };
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
-        callback(new Error('密码至少六位'))
+        callback(new Error('密码至少六位'));
       } else {
-        callback()
+        callback();
       }
-    }
+    };
     return {
       loginForm: {
         account: '15259207770',
-        password: 'disueb11'
+        password: 'disueb11',
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
+        password: [{ required: true, trigger: 'blur', validator: validatePassword }],
       },
       loading: false,
       passwordType: 'password',
-      redirect: undefined
-    }
+      redirect: undefined,
+    };
   },
   watch: {
     $route: {
       handler: function (route) {
-        this.redirect = route.query && route.query.redirect
+        this.redirect = route.query && route.query.redirect;
       },
-      immediate: true
-    }
+      immediate: true,
+    },
   },
   methods: {
-    showPwd () {
+    showPwd() {
       if (this.passwordType === 'password') {
-        this.passwordType = ''
+        this.passwordType = '';
       } else {
-        this.passwordType = 'password'
+        this.passwordType = 'password';
       }
       this.$nextTick(() => {
-        this.$refs.password.focus()
-      })
+        this.$refs.password.focus();
+      });
     },
-    handleLogin () {
-      this.$refs.loginForm.validate(valid => {
-        if (!valid)
-          return false;
+    handleLogin() {
+      this.$refs.loginForm.validate(async (valid) => {
+        if (!valid) return false;
 
-        this.loading = true
-        this.$async.waterfall([
-          fn => {
-            ajaxPost('/login/login', this.loginForm).then(res => {
-              res ? fn(null, res) : fn('账号或密码错误');
-            }, fn);
-          },
-          (sessionId, fn) => {
-            setSessionId(sessionId);
-            menu.getMenuTree().then(() => {
-              this.$router.push({ path: this.redirect || '/' });
-              fn();
-            }, fn);
-          }
-        ], err => {
+        this.loading = true;
+        try {
+          let token = await this.$post('/login/login', this.loginForm);
+          setToken(token);
+          await menu.getMenuTree();
+          this.$router.push({ path: this.redirect || '/' });
+        } catch (err) {
+          throw err;
+        } finally {
           this.loading = false;
-          if (err)
-            this.$message.error(err);
-        })
-
-      })
-    }
-  }
-}
+        }
+      });
+    },
+  },
+};
 </script>
 
 <style lang="scss">
